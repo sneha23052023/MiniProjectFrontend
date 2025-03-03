@@ -11,7 +11,6 @@ function EditorInterface() {
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [active, setActive] = useState("javascript");
   const [darkMode, setDarkMode] = useState(false); // Dark mode state
-  const [isOutputVisible,setIsOutputVisible] = useState(false)
   
   const editorRef = useRef();
   

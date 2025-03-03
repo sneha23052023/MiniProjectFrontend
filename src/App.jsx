@@ -1,6 +1,5 @@
-
 import EditorInterface from "./components/editor"
-import Login from "./components/login"
+import Login from "./components/auth"
 
 function App() {
   return (
