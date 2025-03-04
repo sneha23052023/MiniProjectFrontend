@@ -1,10 +1,16 @@
 import EditorInterface from "./components/editor"
-import Login from "./components/auth"
+import Signup from "./components/auth"
+import { Routes,Route,Link } from "react-router"
 
 function App() {
   return (
         <>
-            <EditorInterface/>
+        <Signup/>
+        {/* <Routes>
+            <Route path="signup" element={<Signup/>}/>
+            <Route path="editor" element={<EditorInterface/>} />
+        </Routes> */}
+            
         </>
     )
 }
