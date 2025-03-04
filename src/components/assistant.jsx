@@ -28,7 +28,7 @@ export default function Assistant(code,darkmode) {
           sendPrompt(code)
         }} className='absolute right-4 rounded-md  bg-blue-300 px-4 '>Help</button>
       </span>
-      <div className='h-[85 vh] overflow-y-scroll'>
+      <div className='h-[85vh] overflow-y-scroll'>
       {hints.map((hint, index) => (
         <div key={index} className='p-2'>
           {hint}
