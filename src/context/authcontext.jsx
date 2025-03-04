@@ -11,7 +11,7 @@ export function useAuth(){
 export function AuthProvider(props){
     const [currentUser ,setCurrentUser] = useState();
     const [loading,setLoading] = useState(true);
-    function createAdmin(email,password){
+    function createUser(email,password){
         return createUserWithEmailAndPassword(auth,email,password);
     }
     function login(email,password){
@@ -31,7 +31,7 @@ export function AuthProvider(props){
 
     const value={
         currentUser,
-        createAdmin,
+        createUser,
         login,
         logout
     }

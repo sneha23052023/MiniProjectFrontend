@@ -1,25 +1,23 @@
 import React, {  useState } from 'react'
 import {createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
-import { auth } from '../config/dbconfig'
+import { useAuth } from '../context/authcontext'
 function Signup() {
     const [email,setEmail] = useState("")
     const [password,setPassword] = useState("")
     const [isRegister,setIsRegister] = useState(false)
-    const createUser = async (e) =>{
+    const {login} = useAuth()
+    const {createUser} = useAuth()
+    const signup = async (e) =>{
       e.preventDefault()
-        createUserWithEmailAndPassword(auth,email,password).then((usercred) => {
-            alert(usercred)
-        }).catch((Error) => {
-            alert(Error)
-        })
+      createUser(email,password)
+      .then((usercred) => alert(usercred))
+      .catch((err)=> alert(err))
     }
     const loginUser = async (e) =>{
       e.preventDefault()
-        signInWithEmailAndPassword(auth,email,password).then((usercred) => {
-            alert(usercred)
-        }).catch((Error) => {
-            alert(Error)
-        })
+      login(email,password)
+      .then((usercred) => alert(usercred))
+      .catch((Error) => alert(Error))
     }
 
   return (
@@ -55,7 +53,7 @@ function Signup() {
         <button className={`border-2 ${isRegister ?"bg-indigo-300 text-indigo-900 hover:bg-purple-300 hover:text-purple-900"  : "hover:bg-indigo-300 hover:text-indigo-900 bg-purple-300 text-purple-900"}  rounded transition duration-500 ease-in-out font-bold mt-2 p-2 uppercase`}
         onClick={(e) => {
           if (isRegister) {
-            createUser(e)
+            signup(e)
           }else{
             loginUser(e)
           }
