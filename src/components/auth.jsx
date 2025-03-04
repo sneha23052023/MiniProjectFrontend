@@ -1,22 +1,35 @@
-import React, {  useState } from 'react'
-import {createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
-import { useAuth } from '../context/authcontext'
-function Signup() {
+import React, {  useState,useContext } from 'react'
+import { useNavigate } from 'react-router'
+import {AuthContext} from "../context/authcontext"
+
+function AuthComponent() {
     const [email,setEmail] = useState("")
     const [password,setPassword] = useState("")
     const [isRegister,setIsRegister] = useState(false)
-    const {login} = useAuth()
-    const {createUser} = useAuth()
+    const { loginUser, loading, user } = useContext(AuthContext);
+    const navigate = useNavigate();
+
+      // If authentication is still loading, display a loading indicator
+      if (loading) {
+        return (
+          <span className="loading loading-dots loading-lg flex item-center mx-auto"></span>
+        );
+      }
+      // If the user is already authenticated, redirect to the home page
+      if (user) {
+        navigate("/editor");
+      }
+
     const signup = async (e) =>{
       e.preventDefault()
       createUser(email,password)
-      .then((usercred) => alert(usercred))
+      .then((usercred) => {alert(usercred);navigate('/editor')})
       .catch((err)=> alert(err))
     }
-    const loginUser = async (e) =>{
+    const login = async (e) =>{
       e.preventDefault()
-      login(email,password)
-      .then((usercred) => alert(usercred))
+      loginUser(email,password)
+      .then((usercred) => {alert(usercred);navigate('/editor')})
       .catch((Error) => alert(Error))
     }
 
@@ -55,7 +68,7 @@ function Signup() {
           if (isRegister) {
             signup(e)
           }else{
-            loginUser(e)
+            login(e)
           }
         }}>{ isRegister? "Signup" : "Login"}</button>
       </form>
@@ -67,4 +80,4 @@ function Signup() {
   )
 }
 
-export default Signup
+export default AuthComponent

@@ -1,18 +1,6 @@
-import EditorInterface from "./components/editor"
-import Signup from "./components/auth"
-import { Routes,Route,Link } from "react-router"
+import RoutedApp from "./routes/routes";
 
 function App() {
-  return (
-        <>
-        <Signup/>
-        {/* <Routes>
-            <Route path="signup" element={<Signup/>}/>
-            <Route path="editor" element={<EditorInterface/>} />
-        </Routes> */}
-            
-        </>
-    )
+  return (<RoutedApp/>)
 }
-
-export default App
+export default App;
