@@ -6,7 +6,7 @@ function AuthComponent() {
     const [email,setEmail] = useState("")
     const [password,setPassword] = useState("")
     const [isRegister,setIsRegister] = useState(false)
-    const { loginUser, loading, user } = useContext(AuthContext);
+    const { loginUser, loading, user,createUser } = useContext(AuthContext);
     const navigate = useNavigate();
 
       // If authentication is still loading, display a loading indicator
