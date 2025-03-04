@@ -112,7 +112,7 @@ function EditorInterface() {
             theme={darkMode ? "vs-dark" : "vs"}
           />
         </div>
-        <div id="assistant-div" className={`bg-slate-50 ${!showTab==""? "lg:w-[50%] w-full overflow-y-scroll" : "hidden" }`}>
+        <div id="assistant-div" className={`bg-slate-50 ${!showTab==""? "lg:w-[50%] w-full " : "hidden" }`}>
           {showTab==="assistant" && <Assistant code={code} darkmode={darkMode}/>}
         {showTab==="output"&&<Output darkmode={darkMode}/>}
         </div>
