@@ -5,20 +5,25 @@ import Editor from "@monaco-editor/react";
 import { Dropdown } from "flowbite-react";
 import Output from "./output";
 import { isOptionsGroup } from "@mantine/core";
+import { useContext } from "react";
+import { AuthContext } from "../context/authcontext"
+import { saveUserCode } from "../context/dbcontext";
+
 function EditorInterface() {
   const [code, setCode] = useState("");
-  const [showTab,setShowTab] = useState("")
+  const [showTab, setShowTab] = useState("")
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [active, setActive] = useState("javascript");
   const [darkMode, setDarkMode] = useState(false); // Dark mode state
-  
+  const { user } = useContext(AuthContext)
+
   const editorRef = useRef();
-  
+
   const handleClick = (t) => {
-    if (showTab == t){
+    if (showTab == t) {
       setShowTab("")
     }
-    else{
+    else {
       setShowTab(t)
     }
   }
@@ -36,7 +41,7 @@ function EditorInterface() {
 
   // Simulated Run Code Handler
   const LanguageDropdown = () => {
-    return (<Dropdown 
+    return (<Dropdown
       label={
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <img
@@ -49,11 +54,13 @@ function EditorInterface() {
       }
       dismissOnClick={true}
       inline
+      className={'relative z-50 ${darkMode ? "bg-gray-800" : "bg-white"}'} //increase priority of dropdown
     >
       {Object.keys(languages).map((language) => (
         <Dropdown.Item
           key={language}
           onClick={() => handleLanguageChange(language)}
+          className={`${darkMode ? "bg-[#181818] text-white hover:bg-gray-700" : "bg-white text-black hover:bg-gray-200"}`}
         >
           <img
             src={languages[language].logo}
@@ -67,8 +74,8 @@ function EditorInterface() {
   };
 
   const Navbar = () => {
-    return(
-      <div className="p-[10px] border-green-300 border-x-8 relative">
+    return (
+      <div className="p-[5px] border-green-300 border-x-8 relative" >
         <button
           onClick={() => setDarkMode(!darkMode)}
           className="absolute top-2 right-5 bg-gray-200  text-white p-1 text-sm rounded"
@@ -76,19 +83,26 @@ function EditorInterface() {
           {darkMode ? "🌙" : "☀️"}
         </button>
         <button
-          onClick={() => {handleClick("assistant")}}
+          onClick={() => { handleClick("assistant") }}
           className="absolute top-2 right-14 bg-gray-200 p-1 text-black text-sm rounded"
         >
-          {showTab=="assistant" ? "Hide Assistant" : "Show Assistant"}
+          {showTab == "assistant" ? "Hide Assistant" : "Show Assistant"}
         </button>
         <button
-        onClick={() => handleClick("output")}
-        className="absolute top-2 right-40 bg-gray-200 p-1 text-black text-sm rounded"
-      >
-        {showTab=="output" ? "Hide Output" : "Show Output"}
-      </button>
-        
-        <LanguageDropdown />
+          onClick={() => handleClick("output")}
+          className="absolute top-2 right-40 bg-gray-200 p-1 text-black text-sm rounded"
+        >
+          {showTab == "output" ? "Hide Output" : "Show Output"}
+        </button>
+
+        <button
+          onClick={() => saveUserCode(user, code)}
+          className="absolute top-2 right-64 bg-green-500 hover:bg-green-700 text-white p-1 text-sm rounded"
+        >
+          Save Code
+        </button>
+
+        <LanguageDropdown darkMode={darkMode} />
       </div>
     );
   }
@@ -96,28 +110,28 @@ function EditorInterface() {
   const beforeMount = () => {
     return <div>Loading</div>
   }
-  
+
   return (
-    <div className={`${darkMode ? "bg-gray-900 text-white" : "bg-white text-black"} `}  >
+    <div className={`${darkMode ? "bg-[#181818] text-white" : "bg-white text-black"}  `}  >
       <Navbar />
-      <div className=" flex flex-row   mt-4">
-        <div id ="editor-div" className={`h-screen ${!showTab==""?  "lg:w-[50%] w-0" : "w-full"}`}>
+      <div className=" flex flex-row   mt-4 ">
+        <div id="editor-div" className={`h-screen ${!showTab == "" ? "lg:w-[50%] w-0" : "w-full"}`}>
           <Editor
             language={active}
             beforeMount={beforeMount}
             onMount={onMount}
             defaultValue={languages["javascript"].structure}
             value={code}
-            onChange={(value,ev) => ( setCode(value || ""))}
+            onChange={(value, ev) => (setCode(value || ""))}
             theme={darkMode ? "vs-dark" : "vs"}
           />
         </div>
-        <div id="assistant-div" className={`bg-slate-50 ${!showTab==""? "lg:w-[50%] w-full " : "hidden" }`}>
-          {showTab==="assistant" && <Assistant code={code} darkmode={darkMode}/>}
-        {showTab==="output"&&<Output darkmode={darkMode}/>}
+        <div id="assistant-div" className={`${!showTab == "" ? "lg:w-[50%] w-full " : "hidden"}`}>
+          {showTab === "assistant" && <Assistant code={code} darkmode={darkMode} />}
+          {showTab === "output" && <Output darkmode={darkMode} />}
         </div>
       </div>
-      
+
     </div>
   );
 }
@@ -125,8 +139,8 @@ function EditorInterface() {
 export default EditorInterface;
 
 
-        {/* Right Section: Output */}
-        {/* <div
+{/* Right Section: Output */ }
+{/* <div
           className={`w-[50%] p-[10px] flex flex-col ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}
         >
           <div className="flex justify-between items-center mb-4">

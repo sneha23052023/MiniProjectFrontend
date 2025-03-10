@@ -53,6 +53,7 @@ function AuthComponent() {
           >{ isRegister? "Login" : "Signup"}
         </button>
       </div>
+      
       <form className="absolute mezzo flex flex-col">
         <h1 className="text-5xl text-indigo-600 font-bold">
           { isRegister? "Create Your Account" : "Welcome Back"}
