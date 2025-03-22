@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, act } from "react";
 import Assistant from "./assistant";
 import { languages } from "../constants/constants";
 import Editor from "@monaco-editor/react";
@@ -7,7 +7,7 @@ import Output from "./output";
 import { isOptionsGroup } from "@mantine/core";
 import { useContext } from "react";
 import { AuthContext } from "../context/authcontext"
-import { saveUserCode } from "../context/dbcontext";
+import { saveUserCode,getUserCode } from "../context/dbcontext";
 
 function EditorInterface() {
   const [code, setCode] = useState("");
@@ -17,7 +17,21 @@ function EditorInterface() {
   const [darkMode, setDarkMode] = useState(false); // Dark mode state
   const { user } = useContext(AuthContext)
 
+  // useEffect(()=>{
+  //   codeDetails()
+  // },[])
+
   const editorRef = useRef();
+
+  const beforeMount = async () => {
+    const data = await getUserCode(user)
+    if (data!="") {
+      setCode(data.code)
+      setActive(data.language)
+    }else{
+      setCode(languages[active].structure)
+    }
+  }
 
   const handleClick = (t) => {
     if (showTab == t) {
@@ -96,7 +110,7 @@ function EditorInterface() {
         </button>
 
         <button
-          onClick={() => saveUserCode(user, code)}
+          onClick={() => saveUserCode(user, code, active)}
           className="absolute top-2 right-64 bg-green-500 hover:bg-green-700 text-white p-1 text-sm rounded"
         >
           Save Code
@@ -107,9 +121,6 @@ function EditorInterface() {
     );
   }
   // Loading Screen Before Mount
-  const beforeMount = () => {
-    return <div>Loading</div>
-  }
 
   return (
     <div className={`${darkMode ? "bg-[#181818] text-white" : "bg-white text-black"}  `}  >
@@ -120,7 +131,7 @@ function EditorInterface() {
             language={active}
             beforeMount={beforeMount}
             onMount={onMount}
-            defaultValue={languages["javascript"].structure}
+            defaultValue={code}
             value={code}
             onChange={(value, ev) => (setCode(value || ""))}
             theme={darkMode ? "vs-dark" : "vs"}

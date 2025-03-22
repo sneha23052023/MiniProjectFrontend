@@ -1,18 +1,21 @@
 import { db } from "../config/dbconfig";
-import { collection, addDoc } from "firebase/firestore";
+import { collection,doc, getDoc,setDoc,getDocs } from "firebase/firestore";
+import { query,where } from "firebase/firestore";
 
 const usersCollectionRef = collection(db, "users")
 
-export const saveUserCode = async (user, code) => {
+
+export const saveUserCode = async (user, code, active) => {
     if (!user) {
         console.error("User not logged in")
         return
     }
 
     try {
-        await addDoc(usersCollectionRef, {
+        await  setDoc(doc(db, "users", user.uid), {
             email: user.email,
             code: code,
+            language : active
         })
         console.log("code saved successfully")
     }
@@ -21,3 +24,17 @@ export const saveUserCode = async (user, code) => {
     }
 };
 
+export const getUserCode = async (user) => {
+    if (!user) {
+        console.error("User not logged in")
+        return
+    }
+    try {
+        const query_result = await getDoc(doc(usersCollectionRef,user.uid))
+        return query_result.data() || ""
+        
+    }
+    catch (error) {
+        console.error("error getting code", error)
+    }
+};
