@@ -2,7 +2,7 @@ import axios from 'axios'
 import React, { useRef, useState } from 'react'
 
 
-export default function Assistant({ code, darkmode }) {
+export default function Assistant({ code, darkmode, addHintToEditor }) {
   const isInitialHintGiven = useRef(false);
   const type = useRef(0)
   const [hints, setHints] = useState([]);
@@ -18,6 +18,7 @@ export default function Assistant({ code, darkmode }) {
         isInitialHintGiven.current = true
         type.current = 1;
         setHints((val) => ([...val, response.data]))
+        addHintToEditor(response.data)
       })
   }
   return (

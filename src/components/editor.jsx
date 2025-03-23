@@ -7,7 +7,8 @@ import Output from "./output";
 import { isOptionsGroup } from "@mantine/core";
 import { useContext } from "react";
 import { AuthContext } from "../context/authcontext"
-import { saveUserCode,getUserCode } from "../context/dbcontext";
+import { saveUserCode, getUserCode } from "../context/dbcontext";
+import * as monaco from "monaco-editor"
 
 function EditorInterface() {
   const [code, setCode] = useState("");
@@ -16,6 +17,8 @@ function EditorInterface() {
   const [active, setActive] = useState("javascript");
   const [darkMode, setDarkMode] = useState(false); // Dark mode state
   const { user } = useContext(AuthContext)
+  const [decorations, setDecorations] = useState([]);
+
 
   // useEffect(()=>{
   //   codeDetails()
@@ -25,10 +28,10 @@ function EditorInterface() {
 
   const beforeMount = async () => {
     const data = await getUserCode(user)
-    if (data!="") {
+    if (data != "") {
       setCode(data.code)
       setActive(data.language)
-    }else{
+    } else {
       setCode(languages[active].structure)
     }
   }
@@ -120,6 +123,40 @@ function EditorInterface() {
       </div>
     );
   }
+
+  const addHintToEditor = (hint) => {
+    if (!editorRef.current) return;
+
+    const editor = editorRef.current;
+    const model = editor.getModel();
+    const position = editor.getPosition(); //cursor position
+    console.log(position)
+
+    if (!position) return;
+
+    const { lineNumber } = position;
+
+    const newDecorations = [
+      {
+        range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+        options: {
+          isWholeLine: false,
+          afterContentClassName: "hint-inline-text",
+          after: {
+            content: ` //💡${hint}`,
+            inlineClassName: "hint-inline-comment",
+          },
+        },
+      },
+    ];
+
+    console.log(newDecorations)
+
+
+    setDecorations((prev) => editor.deltaDecorations(prev, newDecorations));
+  };
+
+
   // Loading Screen Before Mount
 
   return (
@@ -135,10 +172,14 @@ function EditorInterface() {
             value={code}
             onChange={(value, ev) => (setCode(value || ""))}
             theme={darkMode ? "vs-dark" : "vs"}
+            options={{
+              glyphMargin: true,
+              lineNumbers: "on",
+            }}
           />
         </div>
         <div id="assistant-div" className={`${!showTab == "" ? "lg:w-[50%] w-full " : "hidden"}`}>
-          {showTab === "assistant" && <Assistant code={code} darkmode={darkMode} />}
+          {showTab === "assistant" && <Assistant code={code} darkmode={darkMode} addHintToEditor={addHintToEditor} />}
           {showTab === "output" && <Output darkmode={darkMode} />}
         </div>
       </div>

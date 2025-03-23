@@ -1,12 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
-    overflow: hidden;
+  overflow: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -16,7 +17,15 @@ code {
     monospace;
 }
 
-.mezzo{
-  top:30%;
-  left:50%
+.mezzo {
+  top: 30%;
+  left: 50%
+}
+
+.hint-inline-text {
+  color: aquamarine;
+  font-style: italic;
+  padding-left: 10px;
+  white-space: nowrap;
+
 }
