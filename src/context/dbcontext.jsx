@@ -47,7 +47,7 @@ export const getAssistantChat = async(user) => {
     try {
         const query_result = await getDoc(doc(usersCollectionRef,user.uid))
         // console.log( query_result.data().assistant)
-        return query_result.data().assistant || ""
+        return query_result.data().assistant || []
         
     }
     catch (error) {
