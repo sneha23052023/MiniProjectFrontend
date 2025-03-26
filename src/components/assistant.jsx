@@ -3,7 +3,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react'
 import { AuthContext } from '../context/authcontext';
 import { getAssistantChat,updateAssistantChat } from '../context/dbcontext';
 
-export default function Assistant({ code, darkmode, addHintToEditor }) {
+export default function Assistant({ code, darkmode, addHintToEditor ,editorRef}) {
   const isInitialHintGiven = useRef(false);
   const {user} = useContext(AuthContext)
   const type = useRef(0)
@@ -13,7 +13,13 @@ export default function Assistant({ code, darkmode, addHintToEditor }) {
     
   },[])
   const sendPrompt = async (content) => {
-    if (!isInitialHintGiven.current) {
+    const editor = editorRef.current;
+    const model = editor.getModel();
+    var maxLineNumber = 0
+    if (!model)   maxLineNumber=0;
+    
+    maxLineNumber = model.getLineCount();
+    if (!isInitialHintGiven.current || maxLineNumber<10 ) {
       type.current = 0;
     }
     await axios.post('http://localhost:8000/', {

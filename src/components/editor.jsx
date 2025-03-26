@@ -15,15 +15,16 @@ import { parse } from "postcss";
     transports: ["websocket"], // Forces WebSocket usage
     reconnection: true, // Enables automatic reconnection
   });
-
+  
   const hintDecorations = []; // Store decorations globally
   function EditorInterface() {
     const [code, setCode] = useState("");
     const [showTab, setShowTab] = useState("")
+    const editorRef = useRef();
     const [active, setActive] = useState("javascript");
     const [darkMode, setDarkMode] = useState(false); // Dark mode state
     const { user } = useContext(AuthContext)
-    const editorRef = useRef();
+    
     const [messages,setMessages] = useState([])
     const ignoreModelContentChanges = useRef(false); // Track programmatic changes
 
@@ -255,7 +256,7 @@ import { parse } from "postcss";
             />
           </div>
           <div id="assistant-div" className={`${!showTab == "" ? "lg:w-[50%] w-full " : "hidden"}`}>
-            {showTab === "assistant" && <Assistant code={code} darkmode={darkMode} addHintToEditor={addHintToEditor} />}
+            {showTab === "assistant" && <Assistant code={code} darkmode={darkMode} addHintToEditor={addHintToEditor} editorRef={editorRef}/>}
             {showTab === "output" && <Output darkmode={darkMode} />}
           </div>
         </div>
