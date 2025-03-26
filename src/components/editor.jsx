@@ -167,16 +167,16 @@ import { parse } from "postcss";
           >
             {showTab == "assistant" ? "Hide Assistant" : "Show Assistant"}
           </button>
-          <button
+          {/* <button
             onClick={() => handleClick("output")}
             className="absolute top-2 right-40 bg-gray-200 p-1 text-black text-sm rounded"
           >
             {showTab == "output" ? "Hide Output" : "Show Output"}
-          </button>
+          </button> */}
 
           <button
             onClick={() => saveUserCode(user, code, active)}
-            className="absolute top-2 right-64 bg-green-500 hover:bg-green-700 text-white p-1 text-sm rounded"
+            className="absolute top-2 right-40 bg-green-500 hover:bg-green-700 text-white p-1 text-sm rounded"
           >
             Save Code
           </button>
