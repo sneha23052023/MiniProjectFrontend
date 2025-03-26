@@ -29,3 +29,25 @@ code {
   white-space: nowrap;
 
 }
+.my-colored-text {
+  color: red !important;/* Change to any color*/
+  font-weight: bold; /* Optional */
+}
+
+.my-hint-text {
+  color: red !important; /* Orange color for hints */
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.hint-decoration {
+  background-color: rgba(255, 255, 0, 0.3); /* Light yellow highlight */
+  border-radius: 4px;
+}
+.glyph-icon::before {
+  content: "💡"; /* Lightbulb icon */
+  font-size: 14px;
+  position: absolute;
+  left: 5px;
+  top: 2px;
+}

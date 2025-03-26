@@ -1,30 +1,92 @@
-  import React, { useState, useRef, useEffect, act } from "react";
+  import React, { useState, useRef, useEffect, useCallback } from "react";
   import Assistant from "./assistant";
   import { languages } from "../constants/constants";
   import Editor from "@monaco-editor/react";
   import { Dropdown } from "flowbite-react";
   import Output from "./output";
-  import { isOptionsGroup } from "@mantine/core";
   import { useContext } from "react";
   import { AuthContext } from "../context/authcontext"
   import { saveUserCode, getUserCode } from "../context/dbcontext";
   import * as monaco from "monaco-editor"
+  import { io } from "socket.io-client";
+import { parse } from "postcss";
 
+  const socket = io("http://localhost:8000", {
+    transports: ["websocket"], // Forces WebSocket usage
+    reconnection: true, // Enables automatic reconnection
+  });
+
+  const hintDecorations = []; // Store decorations globally
   function EditorInterface() {
     const [code, setCode] = useState("");
     const [showTab, setShowTab] = useState("")
-    const [isAssistantOpen, setIsAssistantOpen] = useState(false);
     const [active, setActive] = useState("javascript");
     const [darkMode, setDarkMode] = useState(false); // Dark mode state
     const { user } = useContext(AuthContext)
-    const [decorations, setDecorations] = useState([]);
-
-
-    // useEffect(()=>{
-    //   codeDetails()
-    // },[])
-
     const editorRef = useRef();
+    const [messages,setMessages] = useState([])
+    const ignoreModelContentChanges = useRef(false); // Track programmatic changes
+
+
+    const onChangeHandler = (value) => {
+      if (ignoreModelContentChanges.current) {
+        return; // Ignore WebSocket-induced changes
+      }
+      setCode(value || "");
+      // if(editorRef.current){
+      //   hintDecorations.forEach(decoration => editorRef.current.deltaDecorations([decoration], []));
+      //   hintDecorations.length = 0; // Clear the stored decoration IDs
+      // }
+      if(value!="") debouncedSendMessage(value);
+    };
+    useEffect(() => {
+        socket.on("server_message", (data) => {
+          console.log("Server:", data.message);
+          setMessages((prev) => [...prev, data.message]);
+        });
+    
+        socket.on("server_response", (data) => {
+          const parsedData = JSON.parse(data.message);
+          console.log("Server Response:", parsedData);
+          setMessages((prev) => [...prev, data.message]);
+          ignoreModelContentChanges.current = true; // Prevent infinite loop
+          console.log(parsedData)
+          addHintToEditor(parsedData.line,parsedData.comment)
+
+          setTimeout(() => {
+            ignoreModelContentChanges.current = false; // Allow user changes again
+          }, 100);
+        });
+    
+        return () => {
+          socket.off("server_message");
+          socket.off("server_response");
+        };
+      }, []);
+
+      const debounce = (func, delay) => {
+        let timer;
+        return (...args) => {
+          clearTimeout(timer);
+          timer = setTimeout(() => {
+            func(...args);
+          }, delay);
+        };
+      };
+
+      const sendMessage = () => {
+        socket.emit("send_message", code);
+        console.log("Sending")
+      };
+
+      const debouncedSendMessage = useCallback(
+        debounce((code) => {
+          socket.emit("send_message", code);
+          console.log("Sending debounced message");
+        }, 5000),
+        []
+      );
+
 
     const beforeMount = async () => {
       const data = await getUserCode(user)
@@ -124,31 +186,52 @@
       );
     }
 
-    const addHintToEditor = (hint) => {
+    const addHintToEditor = (line, hint) => {
       if (!editorRef.current) return;
-  
+    
       const editor = editorRef.current;
       const model = editor.getModel();
-      const position = editor.getPosition(); // Get cursor position
-  
-      if (!position || !model) return;
-  
-      const { lineNumber } = position;
-      const column = model.getLineMaxColumn(lineNumber); // Ensure it appears at the end of the line
-      hint = hint.split('\n')  
-      hint.map((e) => {
-      editor.executeEdits("", [
-        {
-            range: new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column),
-            text: `\n#${e}`,
-            forceMoveMarkers: true,
-        },
-      ]);
-    })
-  };
-  
+      if (!model) console.log("Model");
 
-    // Loading Screen Before Mount
+      const maxLineNumber = model.getLineCount();
+      console.log(maxLineNumber)
+    
+      // Remove existing decorations before adding new ones
+      // hintDecorations.forEach(decoration => editor.deltaDecorations([decoration], []));
+      // hintDecorations.length = 0; // Clear the stored decoration IDs
+    
+      // editor.executeEdits("", [
+      //   {
+      //     range: new monaco.Range(line, column, line, column),
+      //     text: `#Hint Here`, // Append hint as a comment
+      //     forceMoveMarkers: true,
+      //   },
+      // ]);
+       // Get last column of the line
+       if (line>maxLineNumber) 
+      {
+        line = maxLineNumber
+        console.log("line",line)
+      }
+      const column = model.getLineMaxColumn(line);
+      console.log("line",line)
+      // Apply new syntax highlighting via decorations
+      const newDecorations = editor.deltaDecorations([], [
+        {
+          range: new monaco.Range(line, column, line, column), // +3 for " //"
+          options: {
+            inlineClassName: "my-hint-text", // Custom class for styling
+            hoverMessage: { value: `${hint}` },
+            glyphMarginClassName: "glyph-icon", // Custom CSS for the margin icon
+            glyphMarginHoverMessage: { value: `${hint}` },
+            stickiness : 3
+          }
+        }
+      ]);
+    
+      // Store the new decorations so they can be removed later
+      hintDecorations.push(...newDecorations);
+    };
 
     return (
       <div className={`${darkMode ? "bg-[#181818] text-white" : "bg-white text-black"}  `}  >
@@ -161,7 +244,9 @@
               onMount={onMount}
               defaultValue={code}
               value={code}
-              onChange={(value, ev) => (setCode(value || ""))}
+              onChange={(value, ev) => {
+                onChangeHandler(value)
+              }}
               theme={darkMode ? "vs-dark" : "vs"}
               options={{
                 glyphMargin: true,
@@ -180,25 +265,3 @@
   }
 
   export default EditorInterface;
-
-
-  {/* Right Section: Output */ }
-  {/* <div
-            className={`w-[50%] p-[10px] flex flex-col ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}
-          >
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold">Output</h2>
-              <button
-                onClick={handleRunCode}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Run Code
-              </button>
-            </div>
-            <div
-              className={`flex-1 p-4 rounded border border-gray-300 overflow-auto ${darkMode ? "bg-gray-700 text-white" : "bg-gray-100 text-black"}`}
-              style={{ whiteSpace: "pre-wrap" }}
-            >
-              {output || "Output will appear here after you run the code."}
-            </div>
-          </div> */}

@@ -18,7 +18,7 @@ export default function Assistant({ code, darkmode, addHintToEditor }) {
         isInitialHintGiven.current = true
         type.current = 1;
         setHints((val) => ([...val, response.data]))
-        addHintToEditor(response.data)
+        // addHintToEditor(response.data)
       })
   }
   return (
