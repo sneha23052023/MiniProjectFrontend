@@ -49,7 +49,7 @@ export const getAssistantChat = async(user) => {
         // console.log( query_result.data().assistant)
         if (!query_result.data()) return []
 
-        return query_result.data().assistant
+        return query_result.data().assistant | []
         
     }
     catch (error) {
