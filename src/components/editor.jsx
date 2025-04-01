@@ -1,15 +1,18 @@
   import React, { useState, useRef, useEffect, useCallback } from "react";
-  import Assistant from "./assistant";
-  import { languages } from "../constants/constants";
   import Editor from "@monaco-editor/react";
+  import * as monaco from "monaco-editor"
   import { Dropdown } from "flowbite-react";
+  import { io } from "socket.io-client";
+
   import Output from "./output";
   import { useContext } from "react";
   import { AuthContext } from "../context/authcontext"
   import { saveUserCode, getUserCode } from "../context/dbcontext";
-  import * as monaco from "monaco-editor"
-  import { io } from "socket.io-client";
-import { parse } from "postcss";
+  import Assistant from "./assistant";
+  import { languages } from "../constants/constants";
+  
+  
+  
 
   const socket = io("http://localhost:8000", {
     transports: ["websocket"], // Forces WebSocket usage
@@ -18,38 +21,52 @@ import { parse } from "postcss";
   
   const hintDecorations = []; // Store decorations globally
   function EditorInterface() {
+    
     const [code, setCode] = useState("");
     const [showTab, setShowTab] = useState("")
-    const editorRef = useRef();
     const [active, setActive] = useState("javascript");
     const [darkMode, setDarkMode] = useState(false); // Dark mode state
-    const { user } = useContext(AuthContext)
+    const { user,logOut } = useContext(AuthContext)
     
-    const [messages,setMessages] = useState([])
+    const editorRef = useRef();
     const ignoreModelContentChanges = useRef(false); // Track programmatic changes
 
-
+    const exportData = (code) => {
+      const fileData = code;
+      var extension;
+      if(active=="python")
+        extension = "py"
+      else if(active=="javascript")
+        extension = "js"
+      else if(active=="c")
+        extension = "c"
+      else if (active=="java")
+        extension = "java"
+      const blob = new Blob([fileData], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = "program."+extension;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    }
     const onChangeHandler = (value) => {
       if (ignoreModelContentChanges.current) {
         return; // Ignore WebSocket-induced changes
       }
       setCode(value || "");
-      // if(editorRef.current){
-      //   hintDecorations.forEach(decoration => editorRef.current.deltaDecorations([decoration], []));
-      //   hintDecorations.length = 0; // Clear the stored decoration IDs
-      // }
       if(value!="") debouncedSendMessage(value);
     };
     useEffect(() => {
         socket.on("server_message", (data) => {
           console.log("Server:", data.message);
-          setMessages((prev) => [...prev, data.message]);
         });
     
         socket.on("server_response", (data) => {
           const parsedData = JSON.parse(data.message);
-          console.log("Server Response:", parsedData);
-          setMessages((prev) => [...prev, data.message]);
           ignoreModelContentChanges.current = true; // Prevent infinite loop
           console.log(parsedData)
           addHintToEditor(parsedData.line,parsedData.comment)
@@ -73,11 +90,6 @@ import { parse } from "postcss";
             func(...args);
           }, delay);
         };
-      };
-
-      const sendMessage = () => {
-        socket.emit("send_message", code);
-        console.log("Sending")
       };
 
       const debouncedSendMessage = useCallback(
@@ -155,7 +167,7 @@ import { parse } from "postcss";
 
     const Navbar = () => {
       return (
-        <div className="p-[5px] border-green-300 border-x-8 relative" >
+        <div className="p-[5px] border-green-300 border-x-8 sm:relative" >
           <button
             onClick={() => setDarkMode(!darkMode)}
             className="absolute top-2 right-5 bg-gray-200  text-white p-1 text-sm rounded"
@@ -168,18 +180,24 @@ import { parse } from "postcss";
           >
             {showTab == "assistant" ? "Hide Assistant" : "Show Assistant"}
           </button>
-          {/* <button
-            onClick={() => handleClick("output")}
-            className="absolute top-2 right-40 bg-gray-200 p-1 text-black text-sm rounded"
+          <button
+            onClick={()=>exportData(code)}
+            className="absolute top-2 right-60 bg-gray-200 p-1 text-black text-sm rounded"
           >
-            {showTab == "output" ? "Hide Output" : "Show Output"}
-          </button> */}
+            Export Code
+          </button>
 
           <button
             onClick={() => saveUserCode(user, code, active)}
             className="absolute top-2 right-40 bg-green-500 hover:bg-green-700 text-white p-1 text-sm rounded"
           >
             Save Code
+          </button>
+          <button
+            onClick={() => logOut()}
+            className="absolute top-2 right-[21rem] bg-green-500 hover:bg-green-700 text-white p-1 text-sm rounded"
+          >
+            Signout
           </button>
 
           <LanguageDropdown darkMode={darkMode} />
@@ -195,20 +213,6 @@ import { parse } from "postcss";
       if (!model) console.log("Model");
 
       const maxLineNumber = model.getLineCount();
-      console.log(maxLineNumber)
-    
-      // Remove existing decorations before adding new ones
-      // hintDecorations.forEach(decoration => editor.deltaDecorations([decoration], []));
-      // hintDecorations.length = 0; // Clear the stored decoration IDs
-    
-      // editor.executeEdits("", [
-      //   {
-      //     range: new monaco.Range(line, column, line, column),
-      //     text: `#Hint Here`, // Append hint as a comment
-      //     forceMoveMarkers: true,
-      //   },
-      // ]);
-       // Get last column of the line
        if (line>maxLineNumber) 
       {
         line = maxLineNumber
